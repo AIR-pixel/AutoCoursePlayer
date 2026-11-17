@@ -21,7 +21,7 @@
 
 ### A. 不想装 Python：用打包好的 exe
 
-从 [Release](https://github.com/AIR-pixel/ChangjiangYuketangAutoPlayer/releases/latest) 下载最新版 zip，
+从 [Release](https://github.com/AIR-pixel/MultiCourseAutoPlayer/releases/latest) 下载最新版 zip，
 解压，双击 exe，按提示选站点、挑课即可。
 
 - **Windows 10 / 11**，需要 **Edge** 或 **Chrome**（一般自带 Edge），驱动自动下载、走本地缓存。
