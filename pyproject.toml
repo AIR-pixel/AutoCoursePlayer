@@ -1,7 +1,7 @@
 [project]
-name = "changjiang-yuketang"
-version = "1.1.0"
-description = "长江雨课堂视频自动播放器 - 基于 Selenium 的无头刷课工具"
+name = "course-auto-player"
+version = "2.0.2"
+description = "多站点网课自动播放器（雨课堂/学习通/智慧树）- 基于 Selenium + 站点适配器"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [

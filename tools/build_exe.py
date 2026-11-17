@@ -30,7 +30,7 @@ import zipfile
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(REPO, 'dist')
 BUILD = os.path.join(REPO, 'build')
-APP_NAME = '长江雨课堂自动播放器'
+APP_NAME = '网课自动播放器'
 ENTRY = 'main.py'
 
 # 显式带上，别让 PyInstaller 去猜。
@@ -56,8 +56,14 @@ EXCLUDES = [
     'tkinter', 'numpy', 'matplotlib', 'pandas', 'scipy', 'PIL', 'IPython', 'pytest',
 ]
 
-USAGE_TXT = """长江雨课堂 - 视频自动播放器（Windows 免安装版）
-================================================
+USAGE_TXT = """网课自动播放器（Windows 免安装版）
+======================================
+
+支持站点
+--------
+· 长江雨课堂（changjiang.yuketang.cn / www.yuketang.cn）
+· 超星学习通 / 泛雅（chaoxing.com 及各学校泛雅站点）
+· 智慧树 / 知到（zhihuishu.com 各学习页）
 
 包里有什么
 ----------
@@ -70,26 +76,29 @@ USAGE_TXT = """长江雨课堂 - 视频自动播放器（Windows 免安装版）
 ------
 1. 双击「{app}.exe」。
 2. 第一次运行会自动弹出配置向导：
-     · 先自动获取登录凭据（能读到你本机 Firefox 里的登录状态就直接用，读不到
-       会自己开一个浏览器窗口，请你用微信扫码登录）；
-     · 然后列出这个账号下的课程，输入序号挑一门。
-   （第一步只做一次；之后凭据失效了程序会自己重新获取，不用管。）
-3. 挑完就开始自动刷课了。关掉窗口 = 停止。
+     · 先选站点（雨课堂 / 学习通 / 智慧树）；
+     · 再获取登录凭据（雨课堂能读本机 Firefox 登录态就直接用，读不到会开窗口扫码；
+       学习通/智慧树按提示粘贴 Cookie）；
+     · 然后列出该账号下的课程，输入序号挑一门（列不出来就手动粘课程地址）。
+   （第一步只做一次；凭据失效时程序会提示重新获取。）
+3. 挑完就开始自动播放了。关掉窗口 = 停止。
 
 配置存在哪
 ----------
-exe 旁边会自动生成 config.ini。想换课程：把里面 course_url 那一行清空再运行，
-就会重新让你挑。想改倍速 / 用不用无窗口模式，也是在 config.ini 里改。
+exe 旁边会自动生成 config.ini。想换课程：把里面 course_url 那一行清空再运行；
+想换站点：把 site 那一行清空再运行。倍速、无窗口模式也都在 config.ini 里改。
 
 它做什么
 --------
-· 后台无窗口运行，自动切换下一集，按 config.ini 里的 speed 设置倍速（默认 2 倍）。
-· 已经看完的小节会自动跳过；未开放（带锁）的小节不会算作"刷完"，日志里会如实说。
+· 后台无窗口运行，自动切换下一集，按 config.ini 里的 speed 倍速播放。
+· 已看完的小节自动跳过；未开放（带锁）的小节不会算作"刷完"，日志如实说明。
 · 断点续播：进度记在服务端，中途关掉再开就接着刷。
 
 注意
 ----
-· 目标机器需要装有 Edge 或 Chrome（Windows 10/11 一般都自带 Edge）。
+· 各站点倍速有上限：智慧树 1.5x、超星 2x（过高可能被平台清空学习记录），程序会自动夹住。
+· 站点前端常改版。若某站点读不到课程/小节，先看日志，可用 tools/probe_site.py dump 页面结构。
+· 目标机器需装 Edge 或 Chrome（Windows 10/11 一般自带 Edge）。
 · 首次运行会联网下载浏览器驱动，稍有等待属正常；之后走本地缓存。
 · exe 没有代码签名，SmartScreen 可能提示「未知发布者」，点「更多信息」→「仍要运行」。
 · 这类脚本的使用请自行确认符合所在学校/平台的规则，风险自负。
@@ -144,12 +153,12 @@ def write_version_file(ver: str) -> str:
     StringFileInfo([
       StringTable('080404b0', [
         StringStruct('CompanyName', ''),
-        StringStruct('FileDescription', '长江雨课堂 - 视频自动播放器'),
+        StringStruct('FileDescription', '网课自动播放器（雨课堂/学习通/智慧树）'),
         StringStruct('FileVersion', '{ver}'),
         StringStruct('InternalName', '{APP_NAME}'),
         StringStruct('LegalCopyright', 'LGPL-2.1'),
         StringStruct('OriginalFilename', '{APP_NAME}.exe'),
-        StringStruct('ProductName', '长江雨课堂 - 视频自动播放器'),
+        StringStruct('ProductName', '网课自动播放器（雨课堂/学习通/智慧树）'),
         StringStruct('ProductVersion', '{ver}'),
       ])
     ]),

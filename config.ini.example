@@ -1,21 +1,27 @@
-; 长江雨课堂 配置文件（样板）
+; 网课自动播放器 配置文件（样板）
 ;
-; 【一般用不到这个文件】。程序第一次运行会自己弹配置向导：自动取登录凭据、
-; 列出该账号的课程让你挑一门，然后把结果写进 config.ini。只有想手动调参数时
-; 才需要照抄下面这份 —— 复制成 config.ini 再改即可。
+; 【一般用不到这个文件】。程序第一次运行会自己弹配置向导：先选站点，
+; 再自动取登录凭据、列出该账号的课程让你挑一门，然后把结果写进 config.ini。
+; 只有想手动调参数时才需要照抄下面这份 —— 复制成 config.ini 再改即可。
 ;
+; site: 站点，yuketang(长江雨课堂) / chaoxing(超星学习通) / zhihuishu(智慧树)
+;       留空 = 下次运行重新走向导选站点
 ; headless: 是否无窗口运行 (true/false)，挂后台建议 true
 ; browser: chrome / edge / auto，auto 表示自动探测本机已安装的浏览器
-; ui: auto / common / legacy，雨课堂前端版本；auto 表示按域名判断，未知域名则运行时自动探测
-;     changjiang.yuketang.cn（长江雨课堂）、www.yuketang.cn 为新版(common)
+; ui: 雨课堂前端版本 auto / common / legacy，其它站点忽略此项
 ; course_url: 课程地址，必须带 https:// 协议头
-;             例如: https://changjiang.yuketang.cn/v2/web/studentLog/12345678
+;             雨课堂例: https://changjiang.yuketang.cn/v2/web/studentLog/12345678
+;             智慧树例: https://ai-smart-course-student-pro.zhihuishu.com/learnPage/...
+;             超星例:   https://mooc1.chaoxing.com/mycourse/studentstudy?courseId=...
 ;             留空 = 下次运行会重新走向导
-; cookie: sessionid 的值；留空或失效时程序会自动重新获取，不用手抄
-; speed: 播放倍速，1 = 原速，2 = 两倍速（允许 0.5 ~ 4）
+; cookie: 登录凭据。雨课堂是 sessionid；智慧树是 arn；超星建议贴整段 Cookie
+;         留空或失效时程序会自动重新获取，不用手抄
+; speed: 播放倍速，1 = 原速，2 = 两倍速（允许 0.5 ~ 4；站点有更低上限时会自动夹住：
+;        智慧树 1.5x，超星 2x，防止倍速过高被平台清空学习记录）
 ; implicitly_wait: 元素查找超时时间(秒)，一般不需要修改
 
 [Settings]
+site = yuketang
 headless = true
 browser = auto
 ui = auto

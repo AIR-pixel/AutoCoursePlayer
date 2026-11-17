@@ -159,11 +159,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# 项目特定配置
+# 项目特定配置（含登录凭据，绝不入库）
 config.ini
+config_*.bak
+*_legacy.py.bak
 
-# 运行时产物：一个小节都找不到时 dump_dom() 落盘的现场页面
+# 运行时产物：dump_dom() / probe_site.py 落盘的现场页面
 _debug_page_source.html
+_probe_*/
 
 # 本地发布工具（含账号与仓库配置，不属于仓库内容）
 .gh_publish.py

@@ -39,6 +39,7 @@ BROWSER_PATHS = {
 
 # 新建 config.ini 时先铺的底。带注释的完整清单在 config.ini.example（给人看的样板）。
 DEFAULT_SETTINGS = (
+    ('site', 'yuketang'),
     ('headless', 'true'),
     ('browser', 'auto'),
     ('ui', 'auto'),
@@ -47,7 +48,21 @@ DEFAULT_SETTINGS = (
     ('speed', '2'),
     ('implicitly_wait', '10'),
 )
-CONFIG_HEADER = '; 长江雨课堂 配置文件（程序自动生成，各项含义见 README.md）\n'
+CONFIG_HEADER = '; 网课自动播放器 配置文件（程序自动生成，各项含义见 README.md）\n'
+
+
+def pause_exit(code: int = 0):
+    """退出前停一下。
+
+    双击 exe 时控制台随进程关闭，不停留就是"闪一下就没了"、用户看不到报错；
+    但输出被重定向、压根没有控制台时不能傻等，否则会挂在后台不退出。
+    """
+    try:
+        if sys.stdin is not None and sys.stdin.isatty():
+            input('按回车键退出...')
+    except Exception:
+        pass
+    sys.exit(code)
 
 
 def app_dir() -> str:
