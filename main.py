@@ -49,6 +49,22 @@ def main():
     refresh_cookie.bypass_proxy_for_localhost()
     path = refresh_cookie.config_path()
 
+    # --cookie：只做"手动获取 Cookie"然后退出（给「手动获取Cookie.bat」用）。
+    # 打开课程页 → 用户登录 → 自动抓 Cookie 写回 config。
+    if '--cookie' in sys.argv:
+        from core import relogin
+        cfg0 = load_settings(path)
+        course_url = cfg0['course_url']
+        if not course_url.startswith('http'):
+            print('config.ini 里还没有课程地址。')
+            print('请先双击「选择站点.bat」选站点并填课程地址，再获取 Cookie。')
+            refresh_cookie.pause_exit(1)
+            return 1
+        ok = relogin.interactive_login(course_url, cfg0['site'], log=print)
+        print('\n完成，可以双击「开始刷课.bat」了。' if ok else '\n未完成，可重新运行。')
+        refresh_cookie.pause_exit(0 if ok else 1)
+        return 0 if ok else 1
+
     settings = load_settings(path)
     # --site：强制重新选站点（换平台用）。等价于双击「选择站点.bat」
     force_site = '--site' in sys.argv
@@ -121,4 +137,26 @@ def firstrun_ensure_ready(path, force_reselect=False):
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    # 顶层兜底：任何未预期异常都要让用户看到原因，而不是"窗口一闪就没了"。
+    # 双击 exe 时没人看命令行，闪退 = 完全不知道发生了什么。
+    try:
+        code = main()
+    except SystemExit:
+        raise
+    except BaseException as e:
+        import traceback
+        print('\n' + '=' * 56)
+        print(f'程序出错: {type(e).__name__}: {e}')
+        print('-' * 56)
+        traceback.print_exc()
+        print('=' * 56)
+        print('请把上面的报错截图发给作者，或按下面方法自查：')
+        print('  1) 确认已安装 Edge 或 Chrome；')
+        print('  2) 确认能正常打开课程网页、账号没被踢下线；')
+        print('  3) 凭据过期时双击「手动获取Cookie.bat」重新登录。')
+        try:
+            refresh_cookie.pause_exit(1)
+        except SystemExit:
+            pass
+        code = 1
+    sys.exit(code)

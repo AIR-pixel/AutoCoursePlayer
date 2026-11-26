@@ -57,51 +57,68 @@ EXCLUDES = [
 ]
 
 USAGE_TXT = """网课自动播放器（Windows 免安装版）
-======================================
+========================================
 
-支持站点
---------
-· 长江雨课堂（changjiang.yuketang.cn / www.yuketang.cn）
-· 超星学习通 / 泛雅（chaoxing.com 及各学校泛雅站点）
-· 智慧树 / 知到（zhihuishu.com 各学习页）
+第一次用？只看这三步就够了
+--------------------------
+把整个文件夹解压出来，里面有 3 个绿色 bat 按钮，双击对应的就行：
+
+  【① 选择站点.bat】   第一次必用。选你要刷的平台（雨课堂/学习通/智慧树），
+                       然后照提示登录、挑一门课。只做一次。
+
+  【② 开始刷课.bat】   选完站点后，以后每天就双击这个。自动后台播放、
+                       跳过看过的、播完自动切下一集。关掉窗口=停止。
+
+  【③ 手动获取Cookie.bat】 提示"要重新登录"或刷不动时双击这个，
+                       会打开浏览器让你登录，登录完自动继续，不用管其它。
+
+就这么简单。下面是一些你可能想知道的。
+
 
 包里有什么
 ----------
-· {app}.exe        —— 主程序，双击就能跑
-· 作者主页.url      —— 双击用默认浏览器打开作者的 GitHub 主页
-· 使用说明.txt      —— 就是这个文件
-· LICENSE           —— 开源许可（LGPL-2.1）
+· ① 选择站点.bat       —— 换平台 / 第一次配置（双击）
+· ② 开始刷课.bat       —— 日常刷课（双击）
+· ③ 手动获取Cookie.bat —— 凭据过期时重新登录（双击）
+· {app}.exe            —— 主程序，bat 就是调用它，不用单独双击
+· 使用说明.txt         —— 就是这个文件
+· LICENSE / 作者主页.url
 
-怎么用
-------
-1. 双击「{app}.exe」。
-2. 第一次运行会自动弹出配置向导：
-     · 先选站点（雨课堂 / 学习通 / 智慧树）；
-     · 再获取登录凭据（雨课堂能读本机 Firefox 登录态就直接用，读不到会开窗口扫码；
-       学习通/智慧树按提示粘贴 Cookie）；
-     · 然后列出该账号下的课程，输入序号挑一门（列不出来就手动粘课程地址）。
-   （第一步只做一次；凭据失效时程序会提示重新获取。）
-3. 挑完就开始自动播放了。关掉窗口 = 停止。
 
-配置存在哪
-----------
-exe 旁边会自动生成 config.ini。想换课程：把里面 course_url 那一行清空再运行；
-想换站点：把 site 那一行清空再运行。倍速、无窗口模式也都在 config.ini 里改。
+常见问题
+--------
+Q: 双击后窗口一闪就没了？
+A: 现在不会了。真出错时会停在窗口里显示原因和解决办法，把那一段截图发作者即可。
+
+Q: 提示"要重新登录 / Cookie 过期"？
+A: 双击【③ 手动获取Cookie.bat】，在打开的浏览器里登录一次，程序会自动接着刷。
+   （各平台登录态隔几天会失效，这是平台机制，不是坏了。）
+
+Q: 想换课程 / 换平台？
+A: 换平台：双击【① 选择站点.bat】重选。
+   换课程（同平台）：用记事本打开 config.ini，清空 course_url 那一行，再双击【②】。
+
+Q: 不想在后台跑、想看着它播？
+A: 用记事本打开 config.ini，把 headless = true 改成 false，再双击【②】。
+
+Q: 智慧树为什么是 1 倍速？
+A: 智慧树按"学习时长"记完成，强开倍速反而会让视频推进变慢（实测 1.5x 变成 0.2x），
+   所以本站固定 1x 原速，这是最快最稳的。超星 2x、雨课堂按 config 里的 speed。
+
 
 它做什么
 --------
-· 后台无窗口运行，自动切换下一集，按 config.ini 里的 speed 倍速播放。
-· 已看完的小节自动跳过；未开放（带锁）的小节不会算作"刷完"，日志如实说明。
-· 断点续播：进度记在服务端，中途关掉再开就接着刷。
+· 后台无窗口运行，自动切换下一集，已经看完的自动跳过。
+· 未开放（带锁）的小节不算"刷完"，日志里如实说明。
+· 断点续播：进度记在平台服务端，中途关掉再开就接着刷。
+
 
 注意
 ----
-· 各站点倍速有上限：智慧树 1.5x、超星 2x（过高可能被平台清空学习记录），程序会自动夹住。
-· 站点前端常改版。若某站点读不到课程/小节，先看日志，可用 tools/probe_site.py dump 页面结构。
-· 目标机器需装 Edge 或 Chrome（Windows 10/11 一般自带 Edge）。
+· 需要 Edge 或 Chrome（Windows 10/11 一般自带 Edge）。程序会优先用系统默认浏览器。
 · 首次运行会联网下载浏览器驱动，稍有等待属正常；之后走本地缓存。
-· exe 没有代码签名，SmartScreen 可能提示「未知发布者」，点「更多信息」→「仍要运行」。
-· 这类脚本的使用请自行确认符合所在学校/平台的规则，风险自负。
+· exe 没有代码签名，SmartScreen 提示「未知发布者」时点「更多信息」→「仍要运行」。
+· 请自行确认用途符合所在学校/平台规定，风险自负。
 
 许可
 ----
@@ -225,12 +242,47 @@ def make_shortcut() -> str:
     return path
 
 
+# 三个双击入口，只调用 exe、不依赖系统 Python。
+# 内容全 ASCII（避免 GBK/UTF-8 编码坑），文件名用中文方便用户识别。
+# 每个 bat 末尾 pause：即使 exe 自己没停住，窗口也不会一闪而过。
+BAT_FILES = {
+    '① 选择站点.bat': '"%~dp0{app}.exe" --site',
+    '② 开始刷课.bat': '"%~dp0{app}.exe"',
+    '③ 手动获取Cookie.bat': '"%~dp0{app}.exe" --cookie',
+}
+
+
+def make_bat_scripts():
+    """生成三个 bat，返回 [(绝对路径, 归档名), ...]。"""
+    os.makedirs(BUILD, exist_ok=True)
+    out = []
+    for name, cmd in BAT_FILES.items():
+        body = (
+            '@echo off\r\n'
+            'cd /d "%~dp0"\r\n'
+            'set "NO_PROXY=localhost,127.0.0.1,::1"\r\n'
+            'set "no_proxy=localhost,127.0.0.1,::1"\r\n'
+            + cmd.format(app=APP_NAME) + '\r\n'
+            'echo.\r\n'
+            'pause\r\n'
+        )
+        path = os.path.join(BUILD, name)
+        # bat 里的 exe 名是中文，用 GBK 编码（中文 Windows 的 cmd 默认代码页），
+        # 和项目现有 run.bat 一致。文件名本身用中文方便用户识别。
+        with open(path, 'wb') as f:
+            f.write(body.encode('gbk'))
+        out.append((path, name))
+    return out
+
+
 def make_zip(ver: str) -> str:
     target = zip_target(ver)
     exe = os.path.join(DIST, APP_NAME + '.exe')
     members = [(exe, f'{APP_NAME}.exe'),
                (os.path.join(REPO, 'LICENSE'), 'LICENSE'),
                (make_shortcut(), SHORTCUT_NAME)]
+    # 三个双击入口放在最前，用户解压第一眼就看到
+    members = make_bat_scripts() + members
     usage = os.path.join(BUILD, '使用说明.txt')
     # utf-8-sig：老版本记事本不认无 BOM 的 UTF-8，会显示成乱码
     with open(usage, 'w', encoding='utf-8-sig') as f:

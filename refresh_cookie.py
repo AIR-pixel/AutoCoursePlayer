@@ -54,11 +54,24 @@ CONFIG_HEADER = '; 网课自动播放器 配置文件（程序自动生成，各
 def pause_exit(code: int = 0):
     """退出前停一下。
 
-    双击 exe 时控制台随进程关闭，不停留就是"闪一下就没了"、用户看不到报错；
-    但输出被重定向、压根没有控制台时不能傻等，否则会挂在后台不退出。
+    双击 exe 时控制台随进程关闭，不停留就是"闪一下就没了"、用户看不到报错。
+    判据不能只看 sys.stdin.isatty() —— 从资源管理器双击 exe 时 stdin 往往不是 tty，
+    旧版就因此直接退出、表现为"闪退"。现在：
+      · 用 bat 包装启动（bat 末尾有 pause）时，bat 自己会停，这里不必重复；
+      · 其余情况一律尝试停住，让用户看到结果。
+    只有明确"输出被重定向到文件/管道"（挂后台）时才跳过，避免卡住无人值守任务。
     """
     try:
-        if sys.stdin is not None and sys.stdin.isatty():
+        redirected = False
+        for stream in (sys.stdout, sys.stderr):
+            if stream is not None and hasattr(stream, 'isatty'):
+                try:
+                    if not stream.isatty():
+                        redirected = True
+                except Exception:
+                    pass
+        # stdout/stderr 都不是 tty = 输出被重定向（挂后台）→ 不等，直接退
+        if not redirected:
             input('按回车键退出...')
     except Exception:
         pass
