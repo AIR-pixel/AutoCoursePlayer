@@ -185,7 +185,11 @@ class Engine:
                 self.d.execute_script(extra)
             except Exception as e:
                 self.log(f'  提示: 站点额外播放脚本失败: {type(e).__name__}: {e}')
-        player.install_play_lock(self.d, self.speed, self.log)
+        # 站点可选择不装倍速锁（如智慧树：按学习时长计时，强锁倍速反而拖慢进度）
+        if getattr(self.site, 'use_speed_lock', True):
+            player.install_play_lock(self.d, self.speed, self.log)
+        else:
+            self.log(f'{ts()} 本站按学习时长计时，使用播放器原速（不锁倍速）')
 
         last_pos = -1.0
         last_t = None
@@ -226,7 +230,11 @@ class Engine:
                 if last_t is not None and now_t > last_t and pos > last_pos:
                     measured = (pos - last_pos) / (now_t - last_t)
                 last_t = now_t
-                stalled = stalled + 1 if (last_pos >= 0 and pos <= last_pos + 0.05) else 0
+                # duration 还是 0 = 播放器元数据没加载完，不算卡住（避免开场误判）
+                if not dur:
+                    stalled = 0
+                else:
+                    stalled = stalled + 1 if (last_pos >= 0 and pos <= last_pos + 0.05) else 0
                 last_pos = pos
                 speed_txt = f' | 实测倍速 {measured:.2f}x' if measured else ''
                 self.log(f'{ts()} 正在播放视频 | 已播 {pos:.0f}s / 共 {dur:.0f}s{speed_txt}')

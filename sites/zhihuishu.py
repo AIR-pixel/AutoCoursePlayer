@@ -41,7 +41,11 @@ class ZhihuishuAdapter(SiteAdapter):
     hosts = ZHS_HOSTS
     cookie_label = 'cookie'
     course_url_hint = '浏览器进智慧树 → 打开课程学习页 → 复制地址栏（形如 .../learnPage/...）'
-    MAX_SPEED = 1.5  # 官方上限，超过有封号风险
+    # 智慧树新形态课程按"学习时长"计完成，且播放器不认原生 playbackRate：
+    # 实测强锁 1.5x 后 currentTime 只以 0.18~0.27x 推进（见 2026-11-26 日志），
+    # 反而更慢。所以本站不装倍速锁，用播放器原速 1x，最稳也最快。
+    MAX_SPEED = 1.0
+    use_speed_lock = False
 
     def __init__(self):
         self.popup_clicked = False

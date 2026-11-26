@@ -23,6 +23,11 @@ class SiteAdapter(ABC):
     hosts: tuple = ()        # 该站点可能的域名，用于校验 course_url
     course_url_hint: str = ''  # 向导里"手动填地址"的提示文案
 
+    # 是否装原生 playbackRate 倍速锁。默认装；
+    # 若站点按"学习时长"计时、且自定义播放器不认原生 playbackRate（如智慧树新形态课程），
+    # 强行改倍速反而会把 currentTime 推进拖到 0.2x，应设为 False 用播放器原速。
+    use_speed_lock: bool = True
+
     # 网站根地址（带 https:// 和结尾 /）。多数站点从 course_url 取 host 即可，
     # 少数站点 home 与 course 不同域时 override。
     def home_url(self, course_url: str) -> str:

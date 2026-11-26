@@ -105,7 +105,7 @@ check('课程 URL 自动识别', t_urls)
 # ---- 5. 倍速夹取 ----
 def t_speed():
     import sites
-    cases = [('zhihuishu', 4, 1.5), ('chaoxing', 4, 2.0), ('yuketang', 2, 2.0)]
+    cases = [('zhihuishu', 4, 1.0), ('chaoxing', 4, 2.0), ('yuketang', 2, 2.0)]
     out = []
     for site, inp, want in cases:
         a = sites.get_adapter(site)
@@ -114,7 +114,7 @@ def t_speed():
         if cap and speed > cap:
             speed = cap
         assert speed == want, f'{site}: {inp}x -> {speed}x, 期望 {want}x'
-        out.append(f'{site} {inp}x→{speed}x')
+        out.append(f'{site} {inp}x→{speed}x' + ('(原速,不锁倍速)' if not a.use_speed_lock else ''))
     return ', '.join(out)
 
 
