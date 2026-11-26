@@ -13,7 +13,6 @@ from .browser import BrowserManager, is_browser_gone, PAGE_LOAD_TIMEOUT
 from . import player
 import refresh_cookie
 
-QR_LOGIN_TIMEOUT = 300
 VIDEO_READY_TIMEOUT = 20
 
 
@@ -69,33 +68,36 @@ class Engine:
         if not self.site.is_login_page(self.d):
             return True
         if not allow_qr:
-            self.log('  重建后仍停在登录页 —— cookie 可能已失效，请重跑凭据刷新')
+            self.log('  重建后仍停在登录页 —— cookie 可能已失效')
             return False
-        self.log('cookie 失效或设置有误，请重设凭据或重新扫码登录')
-        if self.bm.headless:
-            self.log('  提示: 当前是 headless 模式，扫码窗口不可见；要扫码请先把 headless 改成 false')
-        # 通用扫码兜底：尝试常见登录按钮
-        self._get(self.home_url)
-        clicked = False
-        for sel in ('login-btn', 'loginBtn', 'login_button'):
-            try:
-                self.d.find_element(By.CLASS_NAME, sel).click()
-                clicked = True
-                break
-            except Exception:
-                continue
-        if not clicked:
-            self.log('  找不到登录按钮，无法进入扫码登录')
+
+        # Cookie 过期：自动弹可见浏览器走登录桥接，成功后用新 Cookie 重试。
+        # 不再依赖老式 login-btn 扫码（智慧树/学习通都没这个按钮，老版在这里直接退出）。
+        self.log('Cookie 已失效，需要重新登录。')
+        from .relogin import interactive_login
+        # 关掉无头浏览器，避免和登录窗口抢资源
+        try:
+            self.bm.quit()
+        except Exception:
+            pass
+        if not interactive_login(self.course_url, self.cfg['site'], log=self.log):
+            self.log('重新登录未完成，本次退出。下次运行会再试。')
             return False
-        self.log(f'请扫码登录（最多等 {QR_LOGIN_TIMEOUT // 60} 分钟）')
-        deadline = monotonic() + QR_LOGIN_TIMEOUT
-        while self.site.is_login_page(self.d):
-            if monotonic() > deadline:
-                self.log(f'  等扫码超时（{QR_LOGIN_TIMEOUT}s），放弃本次登录')
-                return False
-            sleep(1)
-        self.log('登录成功')
+        # 读回新 Cookie + 课程地址，重建浏览器重进课程页
+        newcfg = refresh_cookie.read_config(refresh_cookie.config_path())
+        g = lambda k: (newcfg.get('Settings', k) or '').strip()
+        self.cookie = g('cookie')
+        if g('course_url').startswith('http'):
+            self.course_url = g('course_url')
+        self.bm.start()
         self._get(self.course_url)
+        self.inject_cookie()
+        self._get(self.course_url)
+        sleep(3)
+        if self.site.is_login_page(self.d):
+            self.log('重新登录后仍停在登录页，放弃本次。')
+            return False
+        self.log('重新登录成功，继续播放。')
         return True
 
     def dump_dom(self):

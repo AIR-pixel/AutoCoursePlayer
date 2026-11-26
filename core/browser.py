@@ -25,6 +25,31 @@ BROWSER_NAMES = {'chrome': 'Chrome', 'edge': 'Edge'}
 
 PAGE_LOAD_TIMEOUT = 90
 
+
+def detect_default_browser():
+    """读 Windows 注册表里 http/https 的默认浏览器，返回 'chrome'/'edge'/None。
+
+    Firefox 虽然能被识别（返回 'firefox'），但本项目的 git 环境下载 geckodriver
+    常常失败，且它不在 BROWSER_PATHS/驱动链里，所以只把它当作"回退到 Edge"的信号。
+    """
+    try:
+        import winreg
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r'Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice')
+        progid = winreg.QueryValueEx(key, 'ProgId')[0]
+        winreg.CloseKey(key)
+        p = (progid or '').lower()
+        if 'chromehtml' in p:
+            return 'chrome'
+        if 'msedge' in p:
+            return 'edge'
+        if 'firefox' in p:
+            return 'firefox'   # 会触发回退到 edge
+    except Exception:
+        pass
+    return None
+
 # "浏览器/标签页已经死了"的报错特征
 DEAD_SESSION_MARKS = (
     'invalid session id', 'tab crashed', 'not connected to devtools',
@@ -52,7 +77,15 @@ class BrowserManager:
         self.driver = None
 
     def _detect(self):
-        order = [self.browser_pref] if self.browser_pref in BROWSER_NAMES else ['chrome', 'edge']
+        if self.browser_pref in BROWSER_NAMES:
+            return self.browser_pref
+        # auto：优先系统默认浏览器（读注册表 UserChoice 的 ProgId）。
+        # 但 Firefox 的 geckodriver 在部分网络下下载不到，跳过它回退 Edge。
+        default = detect_default_browser()
+        order = []
+        if default and default in BROWSER_NAMES:
+            order.append(default)
+        order += ['edge', 'chrome']   # Windows 10/11 自带 Edge，优先于 Chrome
         for name in order:
             if any(os.path.exists(p) for p in BROWSER_PATHS[name]):
                 return name

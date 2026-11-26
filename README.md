@@ -61,10 +61,36 @@ python main.py
 python tools\first_login.py zhihuishu     # 或 chaoxing
 ```
 
-会打开 Edge 窗口 → 你扫码/账密登录 → 回控制台按回车 → 程序抓取完整 Cookie 写入
-config.ini（内容不回显）→ 自动验证登录态。然后把你的课程学习页网址粘进
-config.ini 的 `course_url`，运行 `python main.py` 即可全自动。
-凭据过期时重跑一次这个工具即可。
+会**直接打开课程页**（程序会自动跳到登录页，不用你在登录页里找课程）→ 你扫码/账密
+登录 → **登录后程序自动检测、自动抓 Cookie 写回 config.ini、自动继续**，不用回来按任何键。
+凭据过期时主程序会**自动弹出窗口走这套流程**，一般不用手动跑；想主动刷新时才手动跑。
+
+也可以直接把"藏得深"的课程页网址传给工具：
+```bash
+python tools\first_login.py "https://ai-smart-course-student-pro.zhihuishu.com/learnPage/.../.../327184?catalogActiveTab=personal" zhihuishu
+```
+
+### 手动获取 Cookie（工具用不了时的兜底）
+
+如果上面工具在你机器上跑不通，可以手动抓：
+
+1. 用 **Edge** 打开你的课程页并登录（必须登录成功、能看到视频列表）。
+2. 按 `F12` 打开开发者工具 → 顶部切到 **网络（Network）** 标签。
+3. 刷新页面（`F5`），在请求列表里随便点一个 `zhihuishu.com` 的请求。
+4. 右侧 **标头（Headers）** → 找到 **请求标头（Request Headers）** 里的 `Cookie:` 一行，
+   把冒号后面的整段内容复制下来。
+5. 打开程序目录下的 `config.ini`，把这段粘到 `cookie = ` 后面保存。
+
+注意：智慧树需要的是完整 Cookie 串（不止一个值），所以一定要复制**整行**，不是单个字段。
+雨课堂则只需 `sessionid` 的值。
+
+## 浏览器选择
+
+`browser = auto` 时会**优先用系统默认浏览器**（读 Windows 注册表）。若默认是 Firefox
+（本项目的 geckodriver 常下载不到），会自动回退到 **Edge**，再退到 Chrome。也可在
+config.ini 里写死 `browser = edge` / `chrome`。
+老版本"手动改 headless=false 后默认开 Chrome、没来得及登录就退出"的问题已修复：
+现在凭据过期会自动弹 Edge 登录窗口，登录后自动继续。
 
 ## 配置项（config.ini）
 

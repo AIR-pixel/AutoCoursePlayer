@@ -1,6 +1,6 @@
 [project]
 name = "course-auto-player"
-version = "2.0.2"
+version = "2.1.0"
 description = "多站点网课自动播放器（雨课堂/学习通/智慧树）- 基于 Selenium + 站点适配器"
 readme = "README.md"
 requires-python = ">=3.8"
