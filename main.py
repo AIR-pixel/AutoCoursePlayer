@@ -50,8 +50,10 @@ def main():
     path = refresh_cookie.config_path()
 
     settings = load_settings(path)
-    if needs_setup(settings):
-        if not firstrun_ensure_ready(path):
+    # --site：强制重新选站点（换平台用）。等价于双击「选择站点.bat」
+    force_site = '--site' in sys.argv
+    if force_site or needs_setup(settings):
+        if not firstrun_ensure_ready(path, force_reselect=force_site):
             print('\n配置未完成，退出。')
             refresh_cookie.pause_exit(1)
             return 1
@@ -113,9 +115,9 @@ def main():
     return code
 
 
-def firstrun_ensure_ready(path):
+def firstrun_ensure_ready(path, force_reselect=False):
     import firstrun
-    return firstrun.ensure_ready(path)
+    return firstrun.ensure_ready(path, force_reselect=force_reselect)
 
 
 if __name__ == '__main__':

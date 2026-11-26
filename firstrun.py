@@ -231,8 +231,13 @@ def choose_course(courses, adapter):
 _CURRENT_HOST = ['']
 
 
-def ensure_ready(path: str):
-    """把 config.ini 补到能跑：site + course_url + cookie。缺哪步补哪步。"""
+def ensure_ready(path: str, force_reselect: bool = False):
+    """把 config.ini 补到能跑：site + course_url + cookie。缺哪步补哪步。
+
+    force_reselect=True 时强制重选站点（供 --site / 选择站点.bat 调用）。
+    站点一旦变化，旧的 course_url / cookie / cookies_full 属于另一个站点，
+    必须清掉，否则会拿 A 站的凭据去刷 B 站。
+    """
     import sites
 
     cfg = refresh_cookie.read_config(path)
@@ -248,23 +253,43 @@ def ensure_ready(path: str):
     print('=' * 56)
 
     # ---- 第 0 步：站点 ----
-    site_key = get('site')
-    try:
-        adapter = sites.get_adapter(site_key)
-        print(f'\n当前站点: {adapter.name}（配置里 site = {site_key}）')
-        change = _ask('换站点？输入 y 重选，直接回车沿用: ', '').lower()
-        if change == 'y':
-            site_key = choose_site()
-            adapter = sites.get_adapter(site_key)
-    except Exception:
+    old_site = get('site')
+    site_key = old_site
+    changed = force_reselect
+    if force_reselect:
         site_key = choose_site()
-        adapter = sites.get_adapter(site_key)
+        changed = (site_key != old_site)
+    else:
+        try:
+            adapter = sites.get_adapter(site_key)
+            print(f'\n当前站点: {adapter.name}（配置里 site = {site_key}）')
+            change = _ask('换站点？输入 y 重选，直接回车沿用: ', '').lower()
+            if change == 'y':
+                site_key = choose_site()
+                changed = (site_key != old_site)
+        except Exception:
+            site_key = choose_site()
+            changed = (site_key != old_site)
+
+    # 站点变了 → 旧凭据/课程地址属于另一个站，全部清空重新来
+    if changed and old_site and old_site != site_key:
+        old_name = sites.get_adapter(old_site).name if old_site in dict(sites.list_adapters()) else old_site
+        new_name = sites.get_adapter(site_key).name
+        print(f'\n已从「{old_name}」切换到「{new_name}」')
+        print('  旧站点的课程地址和凭据已清空，下面为新站点重新配置。')
+        for k in ('course_url', 'cookie', 'cookies_full'):
+            refresh_cookie.set_config_value(path, k, '')
+        url, cookie = '', ''
     refresh_cookie.set_config_value(path, 'site', site_key)
     from sites import get_adapter
     adapter = get_adapter(site_key)
 
-    url = get('course_url')
-    cookie = get('cookie')
+    # 站点切换后 cfg 对象还是旧的，直接用刚清空的空值，别从旧 cfg 读回
+    if changed and old_site and old_site != site_key:
+        url, cookie = '', ''
+    else:
+        url = get('course_url')
+        cookie = get('cookie')
     host = host_of(url) if url.startswith('http') else adapter.home_url('https://' + adapter.hosts[0] + '/')
     _CURRENT_HOST[0] = host
 
